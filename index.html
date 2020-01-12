@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SkillDisplay Grade Calculator</title>
+    <div id="grades"></div>
+
+    <script type="text/javascript">
+        // Define a set of goals which consist of certain SkillSets
+        var goals = [
+            {
+                name: "CMS 2019/2020 Wintersemester",
+                skillsets: [16,17,18,19,20,21]
+            },
+            {
+                name: "WEBT 2019/2020 Wintersemester",
+                skillsets: [11,12,13]
+            }
+        ];
+
+        // Define the thresholds for grades in percent along with their names
+        var gradeThresholds = [
+            { name: "Nicht Genügend", threshold: 0 },
+            { name: "Genügend", threshold: 50 },
+            { name: "Befriedigend", threshold: 63 },
+            { name: "Gut", threshold: 76 },
+            { name: "Sehr Gut", threshold: 90 }
+        ];
+
+        // Visualize all goals
+        goals.forEach(function(goal){ visualizeGoal(goal); });
+
+        /**
+         * Visualize a single goal
+         * @param goal The goal to be visualizes (see variable goals)
+         */
+        function visualizeGoal(goal){
+            // create the header
+            let header = document.createElement("h2");
+            header.innerHTML = goal.name;
+            document.querySelector("#grades").appendChild(header);
+
+            // create the table
+            let table = document.createElement("table");
+            table.classList.add("table");
+            table.style.marginBottom = '15pt';
+
+            var thead = table.createTHead();
+            createTableRow(thead, "SkillSet", "Punkte", "Max Punkte", "Prozent", "Note");
+            document.querySelector("#grades").appendChild(table);
+
+            goal.skillsets.forEach(function(skillset) {
+                getGradeForSkillSet(skillset, table);
+            });
+        }
+
+        /**
+         * Create a single table row inside a passed table
+         * @param table The table in which to add lines
+         * @param name Name of the SkillSet
+         * @param points Current points for the SkillSet
+         * @param maxpoints Maximum points available for the SkillSet
+         * @param grade Grade for the SkillSet
+         */
+        function createTableRow(table, name, points, maxpoints, percent, grade){
+            var row = table.insertRow();
+
+            var nameCell = row.insertCell(0);
+            nameCell.innerHTML = name;
+
+            var pointsCell = row.insertCell(1);
+            pointsCell.innerHTML = points;
+
+            var maxpointsCell = row.insertCell(2);
+            maxpointsCell.innerHTML = maxpoints;
+
+            var percentCell = row.insertCell(3);
+            percentCell.innerHTML = percent;
+
+            var gradeCell = row.insertCell(4);
+            gradeCell.innerHTML = grade;
+
+            return row;
+        }
+
+        /**
+         * Returns a grade for a current skill score and a maximum
+         * @param goal
+         */
+        function calculateGradeForScore(percent){
+            for(let i=gradeThresholds.length-1;i>=0;i--){
+                if(percent >= gradeThresholds[i].threshold){
+                    return gradeThresholds[i].name;
+                }
+            }
+            return gradeThresholds[0].name;
+        }
+
+        /**
+         * Gets a grade for a SkillSet and adds it to a table
+         * @param uid Unique identifier of the SkillSet
+         * @param table Table in which to add the current score for the SkillSet
+         */
+        function getGradeForSkillSet(uid, table){
+            fetch("https://htl3r.skilldisplay.eu/api/v1/skillset/" + uid).then(function(result){
+                return result.json();
+            })
+                .then(function(json){
+                    let points = 0;
+                    let maxpoints = json.skillCount*5;
+                    json.skills.forEach(function(skill){
+                        // Self-Verification
+                        points += (skill.progress.self==0) ? 1 : 0;
+                        // Educational-Verification
+                        points += (skill.progress.education==0) ? 2 : 0;
+                        // Business-Verification
+                        points += (skill.progress.businss==0) ? 2 : 0;
+                    });
+                    percent = (points/maxpoints*100).toFixed(0);
+                    createTableRow(table, json.name, points, maxpoints, percent + " %", calculateGradeForScore(percent));
+                })
+        }
+    </script>
+
+</head>
+<body>
+
+</body>
+</html>
