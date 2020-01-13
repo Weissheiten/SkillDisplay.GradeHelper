@@ -114,7 +114,7 @@
                         // Educational-Verification
                         points += (skill.progress.education==0) ? 2 : 0;
                         // Business-Verification
-                        points += (skill.progress.businss==0) ? 2 : 0;
+                        points += (skill.progress.business==0) ? 2 : 0;
                     });
                     percent = (points/maxpoints*100).toFixed(0);
                     createTableRow(table, json.name, points, maxpoints, percent + " %", calculateGradeForScore(percent));
