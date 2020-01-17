@@ -6,6 +6,10 @@
     <div id="grades"></div>
 
     <script type="text/javascript">
+        // define the SDaaS URI
+        var sdaasuri = "https://htl3r.skilldisplay.eu";
+        var mysdaasuri = "https://my.htl3r.skilldisplay.eu";
+
         // Define a set of goals which consist of certain SkillSets
         var goals = [
             {
@@ -62,11 +66,11 @@
          * @param maxpoints Maximum points available for the SkillSet
          * @param grade Grade for the SkillSet
          */
-        function createTableRow(table, name, points, maxpoints, percent, grade){
+        function createTableRow(table, name, points, maxpoints, percent, grade, uid = null){
             var row = table.insertRow();
 
             var nameCell = row.insertCell(0);
-            nameCell.innerHTML = name;
+            nameCell.innerHTML = (uid==null) ? name : '<a href="' + mysdaasuri + '/skillset/' + uid + '" target="_blank">' + name + '</a>';
 
             var pointsCell = row.insertCell(1);
             pointsCell.innerHTML = points;
@@ -102,7 +106,7 @@
          * @param table Table in which to add the current score for the SkillSet
          */
         function getGradeForSkillSet(uid, table){
-            fetch("https://htl3r.skilldisplay.eu/api/v1/skillset/" + uid).then(function(result){
+            fetch(sdaasuri + "/api/v1/skillset/" + uid).then(function(result){
                 return result.json();
             })
                 .then(function(json){
@@ -117,7 +121,7 @@
                         points += (skill.progress.business==0) ? 2 : 0;
                     });
                     percent = (points/maxpoints*100).toFixed(0);
-                    createTableRow(table, json.name, points, maxpoints, percent + " %", calculateGradeForScore(percent));
+                    createTableRow(table, json.name, points, maxpoints, percent + " %", calculateGradeForScore(percent),json.uid);
                 })
         }
     </script>
